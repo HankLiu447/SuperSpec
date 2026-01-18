@@ -1,6 +1,6 @@
 {
   "name": "superspec",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "SuperSpec - Unified spec-driven development framework",
   "type": "module",
   "main": "dist/index.js",

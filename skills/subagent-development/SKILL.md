@@ -8,6 +8,37 @@ description: |
 
 # Subagent-Driven Development
 
+## 🔴 CRITICAL: Phase Protocol (Prevents Context Drift!)
+
+**Before starting ANY phase, you MUST read `skills/phase-protocol/SKILL.md`.**
+
+This protocol prevents you from forgetting tasks during long development sessions:
+
+```
+┌────────────────────────────────────────────────────────────────┐
+│ PHASE PROTOCOL SUMMARY                                          │
+├────────────────────────────────────────────────────────────────┤
+│ ENTRY (start of each phase):                                    │
+│   1. Read phase-protocol skill (refresh context)                │
+│   2. Read tasks.md (get task list)                              │
+│   3. CREATE TODO IMMEDIATELY ← Before reading other docs!       │
+│   4. Gate: Verify TODO completeness                             │
+│   5. Read plan.md, design.md, specs/*.md                        │
+│   6. Gate: Output key understanding                             │
+│   7. Begin implementation                                       │
+├────────────────────────────────────────────────────────────────┤
+│ EXIT (end of each phase):                                       │
+│   1. Update tasks.md                                            │
+│   2. Git commit                                                 │
+│   3. Re-read phase-protocol skill ← Loop back!                  │
+│   4. Create next phase TODO                                     │
+└────────────────────────────────────────────────────────────────┘
+```
+
+**Why this works:** TODO survives context compression. Exit Gate forces re-read.
+
+---
+
 ## ⚠️ CRITICAL: Document Updates (Read This First!)
 
 **You MUST maintain TWO separate progress records:**
@@ -126,14 +157,45 @@ Stay in this session?
 Use superspec:finish-branch
 ```
 
-## Step 1: Setup
+## Step 1: Setup (Phase Entry Protocol)
+
+**🔴 FOLLOW THE PHASE ENTRY PROTOCOL FROM `phase-protocol` SKILL:**
 
 ```markdown
-1. Read plan file: superspec/changes/[id]/plan.md
-2. Extract ALL tasks with full text and context
-3. Note Spec references for each task
-4. **Detect frontend tasks** (see below)
-5. Create TodoWrite with all tasks
+1. READ phase-protocol skill: skills/phase-protocol/SKILL.md
+   → This refreshes your context and provides the full protocol
+
+2. READ tasks.md: superspec/changes/[id]/tasks.md
+   → Identify which phase you are starting
+   → Get the task list for this phase
+
+3. CREATE TODO IMMEDIATELY ← 🔴 BEFORE READING OTHER DOCS!
+   → Use TodoWrite with Entry Gate + Tasks + Exit Gate structure
+   → This is CRITICAL: TODO survives context compression
+   → See phase-protocol skill for TODO template
+
+4. GATE: Verify TODO completeness
+   → Output the completeness checklist
+   → Ensure Entry (8) + Tasks (N) + Exit (3) items exist
+
+5. Read plan.md: superspec/changes/[id]/plan.md
+   → Extract task details and context
+   → Note Spec references for each task
+
+6. Read design.md: superspec/changes/[id]/design.md
+   → Understand technical decisions
+
+7. Read specs: superspec/changes/[id]/specs/**/*.md
+   → Understand requirements and scenarios
+
+8. **Detect frontend tasks** (see below)
+
+9. GATE: Output key understanding
+   → Must output phase goal, tasks, spec refs, technical approach
+   → See phase-protocol skill for template
+
+10. BEGIN IMPLEMENTATION
+    → Now proceed with Per Task Loop
 ```
 
 ### Frontend Task Detection
@@ -618,6 +680,63 @@ Before proceeding to next task, verify:
 
 **Never proceed to next task without updating documents!**
 
+### 5.7 Phase Exit Protocol (When Phase Complete)
+
+**🔴 WHEN ALL TASKS IN CURRENT PHASE ARE COMPLETE, FOLLOW EXIT PROTOCOL:**
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│ PHASE EXIT PROTOCOL                                              │
+├─────────────────────────────────────────────────────────────────┤
+│                                                                   │
+│ 1. UPDATE tasks.md (already done in 5.1-5.5)                     │
+│                                                                   │
+│ 2. GIT COMMIT                                                    │
+│    → git add [changed files]                                     │
+│    → git commit -m "feat([cap]): complete Phase N"               │
+│                                                                   │
+│ 3. CHECK - More phases remaining?                                │
+│    → Read tasks.md to check                                      │
+│    → If NO more phases: Go to Step 6 (Final Review)              │
+│    → If YES more phases: Continue to step 4                      │
+│                                                                   │
+│ 4. RE-READ PHASE-PROTOCOL SKILL ← 🔴 CRITICAL!                   │
+│    → Read: skills/phase-protocol/SKILL.md                        │
+│    → This refreshes your context for next phase                  │
+│                                                                   │
+│ 5. CREATE NEXT PHASE TODO                                        │
+│    → Follow Entry Protocol for Phase N+1                         │
+│    → Use TODO template from phase-protocol skill                 │
+│    → Loop back to implementation                                 │
+│                                                                   │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+**Announce phase transition:**
+
+```markdown
+---
+## Phase N Complete ✅
+
+**Completed tasks:**
+- [x] Task 1
+- [x] Task 2
+
+**Commit:** [sha] - [message]
+
+**Documents updated:**
+- tasks.md: Phase N tasks marked complete
+- Completion Tracking: [X]% → [Y]%
+
+---
+
+## Transitioning to Phase N+1
+
+Re-reading phase-protocol skill to refresh context...
+[Execute Entry Protocol for Phase N+1]
+---
+```
+
 ## Step 6: Final Review
 
 After ALL tasks complete:
@@ -700,6 +819,12 @@ You are performing a FINAL CODE REVIEW of the entire implementation.
 | **Only use TodoWrite without editing tasks.md** | **TodoWrite is ephemeral! tasks.md is the persistent record** |
 | **Skip Completion Tracking table** | **Summary progress tracking lost, % completion wrong** |
 | **Skip phase completion markers** | **Milestone visibility lost** |
+| **Skip phase-protocol skill read** | **Context drift - you'll forget tasks during long sessions** |
+| **Create TODO after reading docs** | **TODO gets compressed - create BEFORE reading plan/design/specs** |
+| **Skip Gate-4 (TODO completeness)** | **Missing items discovered too late** |
+| **Skip Gate-8 (key understanding)** | **Start coding without clear goal** |
+| **Skip Exit-3 (re-read protocol)** | **Context lost, next phase starts blind** |
+| **Forget to re-read skill between phases** | **Context drift compounds across phases** |
 
 ## Example Flow
 

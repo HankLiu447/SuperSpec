@@ -1,8 +1,12 @@
 <div align="center">
 
-# ⬡ SuperSpec
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset=".github/banner.svg">
+  <source media="(prefers-color-scheme: light)" srcset=".github/banner.svg">
+  <img src=".github/banner.svg" alt="SuperSpec - Spec-Driven Development Framework" width="100%">
+</picture>
 
-### Spec-Driven Development Framework
+<br />
 
 [![npm version](https://img.shields.io/npm/v/superspec?color=14b8a6&style=flat-square)](https://www.npmjs.com/package/superspec)
 [![License: MIT](https://img.shields.io/badge/License-MIT-14b8a6.svg?style=flat-square)](https://opensource.org/licenses/MIT)

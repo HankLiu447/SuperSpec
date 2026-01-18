@@ -132,12 +132,39 @@ Use superspec:finish-branch
 1. Read plan file: superspec/changes/[id]/plan.md
 2. Extract ALL tasks with full text and context
 3. Note Spec references for each task
-4. Create TodoWrite with all tasks
+4. **Detect frontend tasks** (see below)
+5. Create TodoWrite with all tasks
 ```
+
+### Frontend Task Detection
+
+For each task, determine if it's a **frontend task** by checking:
+
+**Keywords in task description:**
+- UI, interface, component, page, view, form, modal, dialog
+- Frontend, front-end, client-side
+- Button, input, dropdown, navigation, menu, header, footer
+- Layout, grid, flex, responsive, mobile
+- Style, styling, theme, dark mode, light mode
+- Animation, transition, hover, interaction
+
+**File types involved:**
+- `.tsx`, `.jsx`, `.vue`, `.css`, `.scss`, `.html`, `.svelte`
+
+**Capability/Spec names containing:**
+- `ui`, `frontend`, `component`, `page`, `view`, `interface`
+
+**Mark frontend tasks with `[FRONTEND]` tag in TodoWrite.**
+
+When dispatching implementer for a `[FRONTEND]` task:
+- Read `frontend-guidelines.md` from this directory
+- Include the guidelines in the implementer prompt
 
 ## Step 2: Per Task - Implementer
 
 ### Dispatch Prompt
+
+**For `[FRONTEND]` tasks, add the Frontend Guidelines section (see below) after the Context section.**
 
 ```markdown
 You are implementing a specific task from a plan.
@@ -151,6 +178,40 @@ You are implementing a specific task from a plan.
 
 **Context:**
 [Any additional context needed]
+
+## [FRONTEND ONLY] Frontend Design Guidelines
+
+> **Include this section ONLY for tasks tagged `[FRONTEND]`**
+> Read and include content from `frontend-guidelines.md`
+
+This is a frontend task. Follow these additional guidelines:
+
+### Design Thinking (Required Before Coding)
+
+Before writing any frontend code, explicitly address:
+1. **Purpose**: What problem does this interface solve? Who uses it?
+2. **Tone**: Pick a BOLD aesthetic direction (e.g., minimal, maximalist, retro-futuristic, luxury, playful, editorial, brutalist)
+3. **Constraints**: Technical requirements (framework, performance, accessibility)
+4. **Differentiation**: What makes this UNFORGETTABLE?
+
+### Frontend Anti-Patterns (NEVER Do)
+- Generic AI aesthetics
+- Overused fonts (Inter, Roboto, Arial, system fonts)
+- Cliched colors (purple gradients on white)
+- Predictable layouts
+
+### Additional Report Section
+
+Include this in your report:
+```
+### Frontend Design Decisions
+**Aesthetic Direction:** [Chosen tone/style]
+**Typography:** [Font choices + rationale]
+**Color Palette:** [Colors + purpose]
+**Key Visual Elements:** [Distinctive design choices]
+```
+
+---
 
 ## CRITICAL: TDD is MANDATORY
 

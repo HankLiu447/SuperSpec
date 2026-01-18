@@ -2,6 +2,8 @@
 
 Use this template when dispatching an implementer subagent.
 
+**For `[FRONTEND]` tasks:** Include the Frontend Guidelines section after the Context section. Read `frontend-guidelines.md` for full guidelines.
+
 ```
 Task tool (general-purpose):
   description: "Implement Task N: [task name]"
@@ -21,6 +23,27 @@ Task tool (general-purpose):
     ## Context
 
     [Scene-setting: where this fits, dependencies, architectural context]
+
+    ## [FRONTEND ONLY] Frontend Design Guidelines
+
+    > Include this section ONLY for tasks tagged `[FRONTEND]`
+
+    This is a frontend task. Follow these additional guidelines:
+
+    ### Design Thinking (Required Before Coding)
+    Before writing any frontend code, explicitly address:
+    1. **Purpose**: What problem does this interface solve? Who uses it?
+    2. **Tone**: Pick a BOLD aesthetic direction (minimal, maximalist, retro-futuristic, luxury, playful, editorial, brutalist)
+    3. **Constraints**: Technical requirements (framework, performance, accessibility)
+    4. **Differentiation**: What makes this UNFORGETTABLE?
+
+    ### Frontend Anti-Patterns (NEVER Do)
+    - Generic AI aesthetics
+    - Overused fonts (Inter, Roboto, Arial, system fonts)
+    - Cliched colors (purple gradients on white)
+    - Predictable layouts
+
+    ---
 
     ## Before You Begin
 
@@ -133,6 +156,12 @@ Task tool (general-purpose):
 
     ### Questions/Concerns
     - [any remaining questions]
+
+    ### [FRONTEND ONLY] Frontend Design Decisions
+    **Aesthetic Direction:** [Chosen tone/style]
+    **Typography:** [Font choices + rationale]
+    **Color Palette:** [Colors + purpose]
+    **Key Visual Elements:** [Distinctive design choices]
     ```
 
     **WARNING:** If you cannot show failing test output BEFORE implementation,
@@ -149,3 +178,16 @@ Task tool (general-purpose):
 | `[id]` | Change ID |
 | `[cap]` | Capability name |
 | `[directory]` | Working directory (worktree path) |
+| `[FRONTEND]` | Tag for frontend tasks - include Frontend Design Guidelines section |
+
+## Frontend Task Detection
+
+Include the `[FRONTEND ONLY]` sections when the task matches ANY of:
+
+**Keywords:** UI, interface, component, page, view, form, modal, button, navigation, layout, style, theme, animation
+
+**File types:** `.tsx`, `.jsx`, `.vue`, `.css`, `.scss`, `.html`, `.svelte`
+
+**Capability names:** Contains `ui`, `frontend`, `component`, `page`, `view`
+
+See `frontend-guidelines.md` for complete frontend design guidelines.

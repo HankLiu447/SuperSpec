@@ -39,8 +39,8 @@ export function validateSpec(
   let currentScenario: string | null = null;
   let hasWhen = false;
   let hasThen = false;
-  let seenRequirements = new Set<string>();
-  let seenScenarios = new Set<string>();
+  const seenRequirements = new Set<string>();
+  const seenScenarios = new Set<string>();
 
   // Check header
   const hasTitle = lines.some(l => l.match(/^# .+/));

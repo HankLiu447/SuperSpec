@@ -37,3 +37,4 @@ superspec/changes/*/
 # Temporary files
 *.tmp
 *.temp
+.serena/

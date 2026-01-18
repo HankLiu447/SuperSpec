@@ -194,8 +194,20 @@ For each task:
 
 After each batch:
 - Update `tasks.md` with completed tasks
-- Update status counts
+- Update status counts (top section)
+- **Update Completion Tracking table (bottom section)**
 - Mark phases complete when done
+
+**Completion Tracking table example:**
+```markdown
+## Completion Tracking
+
+| Phase | Tasks | Completed | Status |
+|-------|-------|-----------|--------|
+| Phase 1 | 3 | 2 | IN_PROGRESS |
+| Phase 2 | 6 | 0 | PENDING |
+| **Total** | **9** | **2** | **22%** |
+```
 
 ### Spec References in Commits
 
@@ -215,11 +227,13 @@ Scenario: [Name]"
 - Ignore blockers and push through
 - Skip verification before reporting
 - Guess when unsure
+- **Skip Completion Tracking table updates**
 
 **Always:**
 - Review plan critically first
 - Follow TDD for every task
 - Report at batch completion
+- **Update Completion Tracking table after each batch**
 - Wait for feedback
 - Stop when blocked
 

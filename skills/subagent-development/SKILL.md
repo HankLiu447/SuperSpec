@@ -493,12 +493,41 @@ When all tasks in a phase/section are complete:
    Moving to Phase 2..."
    ```
 
-### 5.5 Document Update Checklist
+### 5.5 Update Completion Tracking Table
+
+**CRITICAL: Update the Completion Tracking table at the bottom of tasks.md!**
+
+This table provides a summary view of progress across all phases:
+
+```markdown
+## Completion Tracking
+
+| Phase | Tasks | Completed | Status |
+|-------|-------|-----------|--------|
+| Phase 1 | 3 | 2 | IN_PROGRESS |    ← Update Completed count
+| Phase 2 | 6 | 0 | PENDING |
+| Phase 3 | 5 | 0 | PENDING |
+| **Total** | **14** | **2** | **14%** |  ← Update Total and percentage
+```
+
+**After completing each task:**
+1. Increment the "Completed" count for the current phase
+2. Update the phase "Status" (PENDING → IN_PROGRESS → COMPLETE)
+3. Update the "Total" row's "Completed" count
+4. Recalculate and update the percentage
+
+**Phase Status values:**
+- `PENDING` - No tasks started
+- `IN_PROGRESS` - At least one task completed, not all done
+- `COMPLETE` - All tasks in phase completed
+
+### 5.6 Document Update Checklist
 
 Before proceeding to next task, verify:
 
 - [ ] tasks.md: Task marked `[x]` with completion date
-- [ ] tasks.md: Status counts updated
+- [ ] tasks.md: Status counts updated (top section)
+- [ ] tasks.md: Completion Tracking table updated (bottom section)
 - [ ] plan.md: Task marked with ✅ COMPLETE (optional)
 - [ ] If phase complete: Phase marked as complete in both files
 - [ ] Announced completion status to user
@@ -584,6 +613,7 @@ You are performing a FINAL CODE REVIEW of the entire implementation.
 | Move to next task with open issues | Complete current task first |
 | **Skip document updates** | **User loses track of progress, tasks.md becomes stale** |
 | **Forget to update tasks.md** | **Progress invisible, duplicate work risk** |
+| **Skip Completion Tracking table** | **Summary progress tracking lost, % completion wrong** |
 | **Skip phase completion markers** | **Milestone visibility lost** |
 
 ## Example Flow
@@ -642,6 +672,12 @@ You: Task 1 complete. Updating documents...
 - Completed: 1
 - In Progress: 0
 - Pending: 4
+
+**Updated Completion Tracking table:**
+| Phase | Tasks | Completed | Status |
+|-------|-------|-----------|--------|
+| Phase 1 | 5 | 1 | IN_PROGRESS |
+| **Total** | **5** | **1** | **20%** |
 
 **Updated plan.md:**
 ## Task 1: 2FA Setup - Generate QR Code ✅ COMPLETE

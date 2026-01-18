@@ -1,0 +1,22 @@
+# SuperSpec Project Configuration
+version: 1
+
+# Project settings
+project:
+  name: my-project
+
+# Workflow settings
+workflow:
+  require_design: true
+  require_validation: true
+  strict_mode: false
+
+# Git settings
+git:
+  worktree_dir: .worktrees
+  branch_prefix: feature/
+
+# Test settings
+test:
+  command: npm test
+  coverage: false

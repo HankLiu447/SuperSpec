@@ -1,0 +1,44 @@
+{
+  "skills": [
+    {
+      "name": "superspec:brainstorm",
+      "path": "skills/brainstorm/SKILL.md",
+      "description": "Progressive design flow: Explore → Propose → Design → Spec"
+    },
+    {
+      "name": "superspec:plan",
+      "path": "skills/plan-writing/SKILL.md",
+      "description": "Create TDD implementation plan from specs"
+    },
+    {
+      "name": "superspec:execute",
+      "path": "skills/subagent-development/SKILL.md",
+      "description": "Execute plan with TDD (subagent-driven)"
+    },
+    {
+      "name": "superspec:verify",
+      "path": "skills/verify/SKILL.md",
+      "description": "Verify Spec-Test correspondence"
+    },
+    {
+      "name": "superspec:archive",
+      "path": "skills/archive/SKILL.md",
+      "description": "Archive completed changes"
+    },
+    {
+      "name": "superspec:finish-branch",
+      "path": "skills/finish-branch/SKILL.md",
+      "description": "Complete feature branch workflow"
+    },
+    {
+      "name": "superspec:tdd",
+      "path": "skills/tdd/SKILL.md",
+      "description": "Test-Driven Development workflow"
+    },
+    {
+      "name": "superspec:git-worktree",
+      "path": "skills/git-worktree/SKILL.md",
+      "description": "Git worktree management"
+    }
+  ]
+}

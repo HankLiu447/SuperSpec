@@ -1,0 +1,39 @@
+# Dependencies
+node_modules/
+
+# Build output
+dist/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Testing
+coverage/
+
+# Logs
+*.log
+npm-debug.log*
+
+# Environment
+.env
+.env.local
+.env.*.local
+
+# Git worktrees
+.worktrees/
+worktrees/
+
+# SuperSpec local data
+superspec/changes/*/
+!superspec/changes/.gitkeep
+
+# Temporary files
+*.tmp
+*.temp

@@ -8,6 +8,26 @@ description: |
 
 # Subagent-Driven Development
 
+## ⚠️ CRITICAL: Document Updates (Read This First!)
+
+**You MUST maintain TWO separate progress records:**
+
+| Tool | Purpose | When |
+|------|---------|------|
+| `TodoWrite` | Your internal tracking (ephemeral, lost after session) | At start of execution |
+| `tasks.md` file | Persistent user-visible progress (survives sessions) | After EACH task completion |
+
+**TodoWrite is NOT a substitute for updating tasks.md!**
+
+After EVERY task completion, you MUST:
+1. ✅ Mark task `[x]` in `superspec/changes/[id]/tasks.md`
+2. ✅ Update Status counts at top of `tasks.md`
+3. ✅ Update Completion Tracking table at bottom of `tasks.md`
+
+**Self-check:** If you only used TodoWrite without editing tasks.md, you did NOT update progress correctly!
+
+---
+
 ## Overview
 
 Execute plan by dispatching fresh subagent per task, with two-stage review:
@@ -417,7 +437,10 @@ If needs work, list required fixes (Critical + Important).
 
 ## Step 5: Mark Complete and Update Documents
 
-**CRITICAL: Always update documents after completing each task!**
+**⚠️ CRITICAL: Always update documents after completing each task!**
+
+**REMINDER:** `TodoWrite` is for YOUR internal tracking only. It does NOT update the actual `tasks.md` file!
+You MUST edit `tasks.md` directly using file editing tools.
 
 After both reviews pass, perform these updates:
 
@@ -613,6 +636,7 @@ You are performing a FINAL CODE REVIEW of the entire implementation.
 | Move to next task with open issues | Complete current task first |
 | **Skip document updates** | **User loses track of progress, tasks.md becomes stale** |
 | **Forget to update tasks.md** | **Progress invisible, duplicate work risk** |
+| **Only use TodoWrite without editing tasks.md** | **TodoWrite is ephemeral! tasks.md is the persistent record** |
 | **Skip Completion Tracking table** | **Summary progress tracking lost, % completion wrong** |
 | **Skip phase completion markers** | **Milestone visibility lost** |
 

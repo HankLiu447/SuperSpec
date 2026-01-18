@@ -1,4 +1,4 @@
-import { existsSync, mkdirSync, writeFileSync, symlinkSync, readlinkSync } from 'fs';
+import { existsSync, mkdirSync, writeFileSync, symlinkSync, readlinkSync, readFileSync } from 'fs';
 import { join, resolve, dirname } from 'path';
 import { fileURLToPath } from 'url';
 import { homedir } from 'os';
@@ -50,6 +50,87 @@ const SKILL_MAPPINGS: Record<string, string> = {
 
 interface InitOptions {
   force?: boolean;
+}
+
+// CLAUDE.md managed block markers
+const CLAUDE_MD_START = '<!-- SUPERSPEC:START -->';
+const CLAUDE_MD_END = '<!-- SUPERSPEC:END -->';
+
+// CLAUDE.md managed content
+const CLAUDE_MD_CONTENT = `${CLAUDE_MD_START}
+# SuperSpec Instructions
+
+This project uses SuperSpec for spec-driven development with TDD discipline.
+
+## Quick Reference
+
+| Command | Description |
+|---------|-------------|
+| \`/superspec:brainstorm\` | Start progressive design (Explore → Propose → Spec) |
+| \`superspec validate [id]\` | Validate specifications (CLI) |
+| \`/superspec:plan\` | Create TDD implementation plan |
+| \`/superspec:execute\` | Execute with subagent-driven TDD |
+| \`/superspec:verify\` | Verify implementation matches specs |
+| \`/superspec:finish-branch\` | Complete branch (merge/PR) |
+| \`/superspec:archive\` | Archive changes |
+
+## Four Iron Rules
+
+1. **TDD Rule**: No production code without a failing test first
+2. **Spec Rule**: Specs are truth. Changes are proposals.
+3. **SuperSpec Rule**: Every Scenario becomes a test. Every test traces to a Scenario.
+4. **Verification Rule**: No completion claims without fresh verification evidence
+
+## Workflow
+
+\`\`\`
+brainstorm → validate → plan → execute → verify → finish-branch → archive
+\`\`\`
+
+Use \`/superspec:brainstorm\` to start any new feature or change.
+
+Keep this managed block so \`superspec init\` can refresh the instructions.
+${CLAUDE_MD_END}`;
+
+/**
+ * Update CLAUDE.md with SuperSpec managed block
+ * - If no CLAUDE.md exists, create it
+ * - If CLAUDE.md exists without markers, prepend the block
+ * - If CLAUDE.md exists with markers, replace only the marked section
+ */
+function updateClaudeMd(projectPath: string): { action: 'created' | 'updated' | 'unchanged' } {
+  const claudeMdPath = join(projectPath, 'CLAUDE.md');
+
+  if (!existsSync(claudeMdPath)) {
+    // Create new CLAUDE.md
+    writeFileSync(claudeMdPath, CLAUDE_MD_CONTENT + '\n');
+    return { action: 'created' };
+  }
+
+  const existingContent = readFileSync(claudeMdPath, 'utf-8');
+
+  // Check if markers exist
+  const startIndex = existingContent.indexOf(CLAUDE_MD_START);
+  const endIndex = existingContent.indexOf(CLAUDE_MD_END);
+
+  if (startIndex !== -1 && endIndex !== -1 && endIndex > startIndex) {
+    // Replace existing managed block
+    const before = existingContent.substring(0, startIndex);
+    const after = existingContent.substring(endIndex + CLAUDE_MD_END.length);
+    const newContent = before + CLAUDE_MD_CONTENT + after;
+
+    if (newContent === existingContent) {
+      return { action: 'unchanged' };
+    }
+
+    writeFileSync(claudeMdPath, newContent);
+    return { action: 'updated' };
+  }
+
+  // No markers found, prepend the block
+  const newContent = CLAUDE_MD_CONTENT + '\n\n' + existingContent;
+  writeFileSync(claudeMdPath, newContent);
+  return { action: 'updated' };
 }
 
 /**
@@ -198,6 +279,9 @@ test:
     // Install global skills for Claude Code
     const skillsInstalled = await installGlobalSkills();
 
+    // Update CLAUDE.md
+    const claudeMdResult = updateClaudeMd(projectPath);
+
     // Display success message
     console.log();
     console.log(`${PALETTE.success(SYMBOLS.success)} ${PALETTE.bold(PALETTE.success('Initialization complete!'))}`);
@@ -235,6 +319,22 @@ test:
     }
     console.log();
     console.log(PALETTE.midGray(`  Skills installed to: ~/.claude/skills/`));
+
+    // Display CLAUDE.md update result
+    console.log();
+    console.log(sectionDivider());
+    displaySection('CLAUDE.md');
+    console.log();
+    if (claudeMdResult.action === 'created') {
+      console.log(`  ${PALETTE.success(SYMBOLS.success)} Created CLAUDE.md with SuperSpec instructions`);
+    } else if (claudeMdResult.action === 'updated') {
+      console.log(`  ${PALETTE.success(SYMBOLS.success)} Updated SuperSpec block in CLAUDE.md`);
+    } else {
+      console.log(`  ${PALETTE.midGray(SYMBOLS.info)} CLAUDE.md already up to date`);
+    }
+    console.log();
+    console.log(PALETTE.midGray(`  Managed block: <!-- SUPERSPEC:START --> ... <!-- SUPERSPEC:END -->`));
+    console.log(PALETTE.midGray(`  Your custom content outside this block is preserved.`));
 
     // Next steps
     console.log();

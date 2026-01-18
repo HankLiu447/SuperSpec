@@ -27,6 +27,7 @@ const SKILLS_SOURCE = join(SUPERSPEC_ROOT, 'skills');
 const SKILL_MAPPINGS: Record<string, string> = {
   // Core SuperSpec workflow
   'superspec:brainstorm': 'brainstorm',
+  'superspec:kickoff': 'kickoff',
   'superspec:plan': 'plan-writing',
   'superspec:execute': 'subagent-development',
   'superspec:verify': 'verify',
@@ -66,9 +67,10 @@ This project uses SuperSpec for spec-driven development with TDD discipline.
 
 | Command | Description |
 |---------|-------------|
-| \`/superspec:brainstorm\` | Start progressive design (Explore → Propose → Spec) |
+| \`/superspec:kickoff\` | **Fast track**: brainstorm + validate + plan in one session |
+| \`/superspec:brainstorm\` | **Full workflow**: progressive design (Explore → Propose → Spec) |
 | \`superspec validate [id]\` | Validate specifications (CLI) |
-| \`/superspec:plan\` | Create TDD implementation plan |
+| \`/superspec:plan\` | Create TDD implementation plan (after brainstorm) |
 | \`/superspec:execute\` | Execute with subagent-driven TDD |
 | \`/superspec:verify\` | Verify implementation matches specs |
 | \`/superspec:finish-branch\` | Complete branch (merge/PR) |
@@ -84,10 +86,11 @@ This project uses SuperSpec for spec-driven development with TDD discipline.
 ## Workflow
 
 \`\`\`
-brainstorm → validate → plan → execute → verify → finish-branch → archive
+Fast track:   /superspec:kickoff → execute → verify → finish-branch → archive
+Full workflow: brainstorm → validate → plan → execute → verify → finish-branch → archive
 \`\`\`
 
-Use \`/superspec:brainstorm\` to start any new feature or change.
+Use \`/superspec:kickoff\` for quick features or \`/superspec:brainstorm\` for larger changes.
 
 Keep this managed block so \`superspec init\` can refresh the instructions.
 ${CLAUDE_MD_END}`;

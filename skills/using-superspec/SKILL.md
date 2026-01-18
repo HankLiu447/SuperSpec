@@ -29,12 +29,24 @@ SuperSpec combines **development discipline** with **spec-driven documentation**
 ## The Unified Workflow
 
 ```
-/superspec:brainstorm      →  Progressive design (Explore → Propose → Spec)
-        ↓
-superspec validate         →  Validate specs (CLI)
-        ↓
-/superspec:plan            →  Create TDD implementation plan
-        ↓
+┌─────────────────────────────────────────────────────────────────────────┐
+│  FULL WORKFLOW (large features, team review needed)                      │
+├─────────────────────────────────────────────────────────────────────────┤
+│  /superspec:brainstorm   →  Progressive design (Explore → Propose → Spec)│
+│          ↓                                                               │
+│  superspec validate      →  Validate specs (CLI) + team review           │
+│          ↓                                                               │
+│  /superspec:plan         →  Create TDD implementation plan               │
+└─────────────────────────────────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────────────────────────────────┐
+│  FAST TRACK (small-medium features, solo development)                    │
+├─────────────────────────────────────────────────────────────────────────┤
+│  /superspec:kickoff      →  All-in-one: brainstorm + validate + plan     │
+└─────────────────────────────────────────────────────────────────────────┘
+
+          ↓ (both paths continue with)
+
 /superspec:execute         →  Subagent-driven TDD implementation
         ↓
 /superspec:verify          →  Verify implementation matches specs
@@ -85,7 +97,8 @@ Even a 1% chance a skill might apply means invoke it to check.
 ### Design Phase
 | Skill | When to Use |
 |-------|-------------|
-| `brainstorm` | Before any feature work - progressive design flow |
+| `kickoff` | **Fast track** - idea to plan in one session (small-medium features) |
+| `brainstorm` | **Full workflow** - progressive design with review points (large features) |
 
 ### Planning Phase
 | Skill | When to Use |
@@ -215,8 +228,9 @@ superspec verify [id]             # Verify implementation
 superspec archive [id] --yes      # Archive change
 
 # Slash Commands (AI Assistant)
-/superspec:brainstorm             # Progressive design (Explore → Propose → Spec)
-/superspec:plan                   # Create TDD plan
+/superspec:kickoff                # Fast track: brainstorm + validate + plan
+/superspec:brainstorm             # Full workflow: progressive design only
+/superspec:plan                   # Create TDD plan (after brainstorm)
 /superspec:execute                # Execute with subagents
 /superspec:verify                 # Verify implementation
 /superspec:finish-branch          # Complete branch (merge/PR)

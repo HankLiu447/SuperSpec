@@ -18,19 +18,24 @@ Every Scenario becomes a test. Every test traces back to a Scenario.
 ## Unified Workflow
 
 ```
-/superspec:brainstorm      Progressive design (Explore → Propose → Spec)
+FAST TRACK (small-medium features):
+/superspec:kickoff      →  All-in-one: brainstorm + validate + plan
+
+FULL WORKFLOW (large features, team review):
+/superspec:brainstorm   →  Progressive design (Explore → Propose → Spec)
         ↓
-superspec validate         Validate specifications (CLI)
+superspec validate      →  Validate specs (CLI) + team review
         ↓
-/superspec:plan            Create TDD implementation plan
+/superspec:plan         →  Create TDD implementation plan
+
+THEN CONTINUE (both paths):
+/superspec:execute      →  Subagent-driven TDD implementation
         ↓
-/superspec:execute         Subagent-driven TDD implementation
+/superspec:verify       →  Verify implementation matches specs
         ↓
-/superspec:verify          Verify implementation matches specs
+/superspec:finish-branch → Complete branch (merge/PR)
         ↓
-/superspec:finish-branch   Complete branch (merge/PR)
-        ↓
-/superspec:archive         Archive changes, apply Delta
+/superspec:archive      →  Archive changes, apply Delta
 ```
 
 ### Four-Phase Brainstorming
@@ -69,7 +74,8 @@ superspec/
 ## Skill System
 
 ### Design Phase
-- `/superspec:brainstorm` - Four-phase progressive design
+- `/superspec:kickoff` - **Fast track**: idea to plan in one session
+- `/superspec:brainstorm` - **Full workflow**: four-phase progressive design
 
 ### Planning Phase
 - `/superspec:plan` - Create TDD implementation plan

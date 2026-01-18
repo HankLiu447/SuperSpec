@@ -22,12 +22,24 @@ Every Scenario becomes a test. Every test traces back to a Scenario.
 ## Unified Workflow
 
 ```
-/superspec:brainstorm      Progressive design (Explore → Propose → Spec)
-        ↓
-superspec validate         Validate specifications (CLI command)
-        ↓
-/superspec:plan            Create TDD implementation plan
-        ↓
+┌─────────────────────────────────────────────────────────────────────────┐
+│  FULL WORKFLOW (large features, team review)                             │
+├─────────────────────────────────────────────────────────────────────────┤
+│  /superspec:brainstorm   →  Progressive design (Explore → Propose → Spec)│
+│          ↓                                                               │
+│  superspec validate      →  Validate specs (CLI) + team review           │
+│          ↓                                                               │
+│  /superspec:plan         →  Create TDD implementation plan               │
+└─────────────────────────────────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────────────────────────────────┐
+│  FAST TRACK (small-medium features)                                      │
+├─────────────────────────────────────────────────────────────────────────┤
+│  /superspec:kickoff      →  All-in-one: brainstorm + validate + plan     │
+└─────────────────────────────────────────────────────────────────────────┘
+
+          ↓ (both paths continue)
+
 /superspec:execute         Subagent-driven TDD implementation
         ↓
 /superspec:verify          Verify implementation matches specs
@@ -113,6 +125,10 @@ your-project/
 ### Basic Usage
 
 ```bash
+# FAST TRACK: Idea to plan in one session
+/superspec:kickoff
+
+# OR FULL WORKFLOW: Separate phases with review points
 # 1. Start a new change (four-phase brainstorming)
 /superspec:brainstorm
 
@@ -122,6 +138,7 @@ superspec validate add-feature --strict
 # 3. Create implementation plan
 /superspec:plan
 
+# THEN CONTINUE (both paths):
 # 4. Execute plan (subagent-driven TDD)
 /superspec:execute
 
@@ -219,8 +236,9 @@ superspec archive [id] --yes       # Non-interactive mode
 
 | Command | Description |
 |---------|-------------|
-| `/superspec:brainstorm` | Progressive design (Explore → Propose → Spec) |
-| `/superspec:plan` | Create TDD implementation plan |
+| `/superspec:kickoff` | **Fast track**: brainstorm + validate + plan in one session |
+| `/superspec:brainstorm` | **Full workflow**: Progressive design (Explore → Propose → Spec) |
+| `/superspec:plan` | Create TDD implementation plan (after brainstorm) |
 | `/superspec:execute` | Subagent-driven execution |
 | `/superspec:verify` | Verify implementation matches specs |
 | `/superspec:finish-branch` | Complete branch (merge/PR/keep/discard) |
@@ -229,10 +247,11 @@ superspec archive [id] --yes       # Non-interactive mode
 ## Skill System
 
 ### Design Phase
-- `superspec:brainstorm` - Progressive design (Explore → Propose → Spec)
+- `superspec:kickoff` - **Fast track**: idea to plan in one session
+- `superspec:brainstorm` - **Full workflow**: progressive design only
 
 ### Planning Phase
-- `superspec:plan` - Create TDD plan
+- `superspec:plan` - Create TDD plan (after brainstorm)
 - `git-worktree` - Git Worktree management
 
 ### Implementation Phase

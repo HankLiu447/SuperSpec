@@ -1,19 +1,17 @@
 import { existsSync, readFileSync, readdirSync } from 'fs';
 import { join } from 'path';
-import { validateSpec, ValidationResult, ValidationIssue } from '../../core/validation/spec-validator.js';
+import { validateSpec, ValidationResult } from '../../core/validation/spec-validator.js';
 import {
   PALETTE,
-  SYMBOLS,
+  ICONS,
   commandHeader,
-  sectionDivider,
-  displayKeyValue,
+  sectionHeader,
   createProgressBar,
   startSpinner,
   spinnerSuccess,
-  spinnerFail,
   isInteractive,
-  selectChange,
   selectPrompt,
+  displayStats,
 } from '../ui/index.js';
 
 interface ValidateOptions {
@@ -30,7 +28,8 @@ export async function validateCommand(id: string | undefined, options: ValidateO
   const superspecPath = join(process.cwd(), 'superspec');
 
   if (!existsSync(superspecPath)) {
-    console.log(PALETTE.error('SuperSpec not initialized. Run: superspec init'));
+    console.log(`  ${ICONS.error} ${PALETTE.error('SuperSpec not initialized.')}`);
+    console.log(`  ${PALETTE.dim('Run:')} ${PALETTE.accent('superspec init')}`);
     process.exit(1);
   }
 
@@ -54,16 +53,16 @@ export async function validateCommand(id: string | undefined, options: ValidateO
       }
 
       if (changes.length === 0) {
-        console.log(PALETTE.warning('No active changes found.'));
-        console.log(PALETTE.midGray('Use --all to validate all specs.'));
+        console.log(`  ${ICONS.warning} ${PALETTE.warning('No active changes found.')}`);
+        console.log(`  ${PALETTE.dim('Use --all to validate all specs.')}`);
         return;
       }
 
       const choice = await selectPrompt({
         message: 'Select what to validate:',
         choices: [
-          { name: PALETTE.primary('All specs'), value: '__all__' },
-          ...changes.map(c => ({ name: c, value: c })),
+          { name: `${PALETTE.primary('›')} All specs`, value: '__all__' },
+          ...changes.map(c => ({ name: `${PALETTE.primary('›')} ${c}`, value: c })),
         ],
       });
 
@@ -73,7 +72,7 @@ export async function validateCommand(id: string | undefined, options: ValidateO
         await validateChange(superspecPath, choice as string, options);
       }
     } else {
-      console.log(PALETTE.error('Please specify a change ID or use --all'));
+      console.log(`  ${ICONS.error} ${PALETTE.error('Please specify a change ID or use --all')}`);
       process.exit(1);
     }
   }
@@ -88,12 +87,12 @@ async function validateChange(
   const specsPath = join(changePath, 'specs');
 
   if (!existsSync(changePath)) {
-    console.log(PALETTE.error(`Change not found: ${id}`));
+    console.log(`  ${ICONS.error} ${PALETTE.error(`Change not found: ${id}`)}`);
     process.exit(1);
   }
 
   if (!existsSync(specsPath)) {
-    console.log(PALETTE.warning(`No specs found for change: ${id}`));
+    console.log(`  ${ICONS.warning} ${PALETTE.warning(`No specs found for change: ${id}`)}`);
     return;
   }
 
@@ -118,11 +117,9 @@ async function validateChange(
 
   // Display detailed results if verbose
   if (options.verbose) {
+    console.log(sectionHeader('Specification Details', '📋'));
     console.log();
-    console.log(sectionDivider());
-    console.log();
-    console.log(`  ${PALETTE.bold(PALETTE.white('📋 Specification Details'))}`);
-    console.log();
+
     for (const result of results) {
       printDetailedResult(result);
     }
@@ -181,11 +178,9 @@ async function validateAll(superspecPath: string, options: ValidateOptions): Pro
   spinnerSuccess(spinner, `Scanned ${results.length} specifications`);
 
   if (options.verbose) {
+    console.log(sectionHeader('Specification Details', '📋'));
     console.log();
-    console.log(sectionDivider());
-    console.log();
-    console.log(`  ${PALETTE.bold(PALETTE.white('📋 Specification Details'))}`);
-    console.log();
+
     for (const result of results) {
       printDetailedResult(result);
     }
@@ -195,26 +190,26 @@ async function validateAll(superspecPath: string, options: ValidateOptions): Pro
 }
 
 function printDetailedResult(result: NamedValidationResult): void {
-  const status = result.valid
-    ? PALETTE.success(SYMBOLS.success)
-    : PALETTE.error(SYMBOLS.error);
-  console.log(`  ${status} ${PALETTE.primary(result.specName)}`);
+  const icon = result.valid ? ICONS.success : ICONS.error;
+  const nameStyle = result.valid ? PALETTE.primaryBright : PALETTE.error;
+
+  console.log(`  ${icon} ${nameStyle(result.specName)}`);
 
   if (result.errors.length > 0) {
     for (const error of result.errors) {
-      const line = error.line ? PALETTE.darkGray(` (line ${error.line})`) : '';
-      console.log(`    ${PALETTE.error('ERROR')} ${error.message}${line}`);
+      const line = error.line ? PALETTE.dark(` (line ${error.line})`) : '';
+      console.log(`    ${PALETTE.error('ERROR')} ${PALETTE.muted(error.message)}${line}`);
     }
   }
 
   if (result.warnings.length > 0) {
     for (const warning of result.warnings) {
-      console.log(`    ${PALETTE.warning('WARN')} ${warning.message}`);
+      console.log(`    ${PALETTE.warning('WARN')} ${PALETTE.muted(warning.message)}`);
     }
   }
 
   // Stats
-  console.log(`    ${PALETTE.midGray(`${result.stats.requirements} requirements, ${result.stats.scenarios} scenarios`)}`);
+  console.log(`    ${PALETTE.dim(`${result.stats.requirements} requirements, ${result.stats.scenarios} scenarios`)}`);
   console.log();
 }
 
@@ -229,42 +224,42 @@ function printSummary(results: NamedValidationResult[], options: ValidateOptions
   const hasWarnings = totalWarnings > 0;
   const failStrict = options.strict && hasWarnings;
 
-  console.log();
-  console.log(sectionDivider());
-  console.log();
-  console.log(`  ${PALETTE.bold(PALETTE.white('📊 Summary'))}`);
+  console.log(sectionHeader('Summary', '📊'));
   console.log();
 
   // Progress bar showing valid specs
-  console.log(`  ${PALETTE.midGray('Specs valid:')} ${createProgressBar(validSpecs, results.length, 20)} ${validSpecs}/${results.length}`);
+  const bar = createProgressBar(validSpecs, results.length, { width: 25 });
+  console.log(`  ${PALETTE.dim('Validation:')} ${bar} ${validSpecs}/${results.length}`);
   console.log();
 
-  console.log(`  ${PALETTE.midGray('Specs validated:')}  ${PALETTE.white(String(results.length))}`);
-  console.log(`  ${PALETTE.midGray('Requirements:')}     ${PALETTE.cyan(String(totalRequirements))}`);
-  console.log(`  ${PALETTE.midGray('Scenarios:')}        ${PALETTE.cyan(String(totalScenarios))}`);
+  displayStats([
+    { label: 'Specs', value: results.length },
+    { label: 'Requirements', value: totalRequirements },
+    { label: 'Scenarios', value: totalScenarios },
+  ]);
   console.log();
 
   if (hasErrors) {
-    console.log(`  ${PALETTE.error(SYMBOLS.error)} ${PALETTE.error(`${totalErrors} errors`)}`);
+    console.log(`  ${ICONS.error} ${PALETTE.error(`${totalErrors} errors`)}`);
   }
   if (hasWarnings) {
-    console.log(`  ${PALETTE.warning(SYMBOLS.warning)} ${PALETTE.warning(`${totalWarnings} warnings`)}`);
+    console.log(`  ${ICONS.warning} ${PALETTE.warning(`${totalWarnings} warnings`)}`);
   }
 
   console.log();
-  console.log(sectionDivider());
+  console.log(`  ${PALETTE.subtle('─'.repeat(50))}`);
   console.log();
 
   if (hasErrors) {
-    console.log(`  ${PALETTE.error(SYMBOLS.error)} ${PALETTE.bold(PALETTE.error('Validation FAILED'))}`);
-    console.log(`  ${PALETTE.midGray('Fix errors before proceeding.')}`);
+    console.log(`  ${ICONS.error} ${PALETTE.bold(PALETTE.error('Validation FAILED'))}`);
+    console.log(`  ${PALETTE.dim('Fix errors before proceeding.')}`);
     process.exit(1);
   } else if (failStrict) {
-    console.log(`  ${PALETTE.warning(SYMBOLS.warning)} ${PALETTE.bold(PALETTE.warning('Validation FAILED (strict mode)'))}`);
-    console.log(`  ${PALETTE.midGray('Fix warnings before proceeding.')}`);
+    console.log(`  ${ICONS.warning} ${PALETTE.bold(PALETTE.warning('Validation FAILED (strict mode)'))}`);
+    console.log(`  ${PALETTE.dim('Fix warnings before proceeding.')}`);
     process.exit(1);
   } else {
-    console.log(`  ${PALETTE.success(SYMBOLS.success)} ${PALETTE.bold(PALETTE.success('Validation PASSED'))}`);
+    console.log(`  ${ICONS.success} ${PALETTE.bold(PALETTE.success('Validation PASSED'))}`);
   }
 
   console.log();

@@ -5,16 +5,14 @@ import { homedir } from 'os';
 import {
   PALETTE,
   BANNER,
-  SYMBOLS,
+  ICONS,
   startSpinner,
   spinnerSuccess,
   spinnerFail,
   confirmPrompt,
-  displaySuccess,
-  displaySection,
+  sectionHeader,
   displayTree,
-  sectionDivider,
-  numberedItem,
+  displayCommand,
 } from '../ui/index.js';
 
 // Get the SuperSpec package root directory
@@ -150,7 +148,7 @@ async function installGlobalSkills(): Promise<{ installed: string[]; skipped: st
 
   // Check if skills source exists
   if (!existsSync(SKILLS_SOURCE)) {
-    console.log(PALETTE.warning(`${SYMBOLS.warning} Skills directory not found at ${SKILLS_SOURCE}`));
+    console.log(`  ${ICONS.warning} ${PALETTE.warning('Skills directory not found at ' + SKILLS_SOURCE)}`);
     return result;
   }
 
@@ -184,7 +182,7 @@ async function installGlobalSkills(): Promise<{ installed: string[]; skipped: st
       // Create symlink
       symlinkSync(sourcePath, targetPath);
       result.installed.push(globalName);
-    } catch (error) {
+    } catch {
       result.failed.push(globalName);
     }
   }
@@ -201,7 +199,7 @@ export async function initCommand(path: string, options: InitOptions): Promise<v
 
   // Check if already initialized
   if (existsSync(superspecPath) && !options.force) {
-    console.log(PALETTE.warning(`${SYMBOLS.warning} SuperSpec already initialized in this directory.`));
+    console.log(`  ${ICONS.warning} ${PALETTE.warning('SuperSpec already initialized in this directory.')}`);
     console.log();
 
     const proceed = await confirmPrompt({
@@ -210,7 +208,7 @@ export async function initCommand(path: string, options: InitOptions): Promise<v
     });
 
     if (!proceed) {
-      console.log(PALETTE.midGray('Initialization cancelled.'));
+      console.log(`  ${PALETTE.dim('Initialization cancelled.')}`);
       return;
     }
   }
@@ -285,69 +283,76 @@ test:
     // Update CLAUDE.md
     const claudeMdResult = updateClaudeMd(projectPath);
 
-    // Display success message
-    console.log();
-    console.log(`${PALETTE.success(SYMBOLS.success)} ${PALETTE.bold(PALETTE.success('Initialization complete!'))}`);
+    // ═══════════════════════════════════════════════════════════════════════════
+    // SUCCESS OUTPUT
+    // ═══════════════════════════════════════════════════════════════════════════
 
-    // Display structure
     console.log();
-    console.log(sectionDivider());
-    displaySection('Directory Structure');
+    console.log(`  ${ICONS.success} ${PALETTE.bold(PALETTE.success('Initialization complete!'))}`);
+
+    // Directory Structure Section
+    console.log(sectionHeader('Directory Structure', '📁'));
     console.log();
     displayTree([
       {
-        name: PALETTE.primary('superspec/'),
+        name: PALETTE.primaryBright('superspec/'),
+        icon: PALETTE.primary('◆'),
         children: [
-          `${PALETTE.cyan('specs/')}           ${PALETTE.midGray('<- Main specifications')}`,
-          `${PALETTE.cyan('changes/')}         ${PALETTE.midGray('<- Active changes')}`,
-          `${PALETTE.cyan('  +-- archive/')}    ${PALETTE.midGray('<- Completed changes')}`,
-          `${PALETTE.white('project.yaml')}     ${PALETTE.midGray('<- Configuration')}`,
+          { name: `${PALETTE.primary('specs/')}          ${PALETTE.dim('Main specifications')}`, icon: PALETTE.dim('○') },
+          { name: `${PALETTE.primary('changes/')}        ${PALETTE.dim('Active changes')}`, icon: PALETTE.dim('○') },
+          { name: `${PALETTE.dim('  └─ archive/')}    ${PALETTE.dim('Completed changes')}`, icon: ' ' },
+          { name: `${PALETTE.white('project.yaml')}    ${PALETTE.dim('Configuration')}`, icon: PALETTE.dim('○') },
         ]
       }
     ]);
 
-    // Display skills installation result
+    // Skills Section
+    console.log(sectionHeader('Claude Code Skills', '🔧'));
     console.log();
-    console.log(sectionDivider());
-    displaySection('Claude Code Skills');
-    console.log();
+
     if (skillsInstalled.installed.length > 0) {
-      console.log(`  ${PALETTE.success(SYMBOLS.success)} Installed: ${skillsInstalled.installed.join(', ')}`);
+      const installedList = skillsInstalled.installed.slice(0, 5).join(', ');
+      const more = skillsInstalled.installed.length > 5
+        ? PALETTE.dim(` +${skillsInstalled.installed.length - 5} more`)
+        : '';
+      console.log(`  ${ICONS.success} ${PALETTE.success('Installed:')} ${installedList}${more}`);
     }
+
     if (skillsInstalled.skipped.length > 0) {
-      console.log(`  ${PALETTE.midGray(SYMBOLS.info)} Already installed: ${skillsInstalled.skipped.length} skills`);
+      console.log(`  ${ICONS.info} ${PALETTE.info('Already installed:')} ${skillsInstalled.skipped.length} skills`);
     }
+
     if (skillsInstalled.failed.length > 0) {
-      console.log(`  ${PALETTE.warning(SYMBOLS.warning)} Failed: ${skillsInstalled.failed.join(', ')}`);
+      console.log(`  ${ICONS.warning} ${PALETTE.warning('Failed:')} ${skillsInstalled.failed.join(', ')}`);
     }
-    console.log();
-    console.log(PALETTE.midGray(`  Skills installed to: ~/.claude/skills/`));
 
-    // Display CLAUDE.md update result
     console.log();
-    console.log(sectionDivider());
-    displaySection('CLAUDE.md');
+    console.log(`  ${PALETTE.dim('Location:')} ${PALETTE.muted('~/.claude/skills/')}`);
+
+    // CLAUDE.md Section
+    console.log(sectionHeader('CLAUDE.md', '📄'));
     console.log();
+
     if (claudeMdResult.action === 'created') {
-      console.log(`  ${PALETTE.success(SYMBOLS.success)} Created CLAUDE.md with SuperSpec instructions`);
+      console.log(`  ${ICONS.success} ${PALETTE.success('Created')} CLAUDE.md with SuperSpec instructions`);
     } else if (claudeMdResult.action === 'updated') {
-      console.log(`  ${PALETTE.success(SYMBOLS.success)} Updated SuperSpec block in CLAUDE.md`);
+      console.log(`  ${ICONS.success} ${PALETTE.success('Updated')} SuperSpec block in CLAUDE.md`);
     } else {
-      console.log(`  ${PALETTE.midGray(SYMBOLS.info)} CLAUDE.md already up to date`);
+      console.log(`  ${ICONS.info} ${PALETTE.info('Already up to date')}`);
     }
-    console.log();
-    console.log(PALETTE.midGray(`  Managed block: <!-- SUPERSPEC:START --> ... <!-- SUPERSPEC:END -->`));
-    console.log(PALETTE.midGray(`  Your custom content outside this block is preserved.`));
 
-    // Next steps
     console.log();
-    console.log(sectionDivider());
-    displaySection('🚀 Next Steps');
+    console.log(`  ${PALETTE.dim('Managed block preserved between:')}`);
+    console.log(`  ${PALETTE.dark('<!-- SUPERSPEC:START --> ... <!-- SUPERSPEC:END -->')}`);
+
+    // Next Steps Section
+    console.log(sectionHeader('Next Steps', '🚀'));
     console.log();
-    console.log(numberedItem(1, `Start a new change with ${PALETTE.bold(PALETTE.white('/superspec:brainstorm'))}`));
-    console.log(numberedItem(2, `Or run ${PALETTE.white('superspec view')} to see the dashboard`));
+    displayCommand('/superspec:kickoff', 'Fast-track a new feature');
+    displayCommand('/superspec:brainstorm', 'Progressive design for larger changes');
+    displayCommand('superspec view', 'View the project dashboard');
     console.log();
-    console.log(PALETTE.midGray('  Tip: Use Claude Code to brainstorm and design your changes!'));
+    console.log(`  ${PALETTE.accent('💡')} ${PALETTE.dim('Use Claude Code skills to brainstorm and design your changes!')}`);
     console.log();
 
   } catch (error) {

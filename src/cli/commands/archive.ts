@@ -2,15 +2,16 @@ import { existsSync, readFileSync, writeFileSync, mkdirSync, readdirSync, rename
 import { join, dirname } from 'path';
 import {
   PALETTE,
-  SYMBOLS,
+  ICONS,
   commandHeader,
-  sectionDivider,
+  sectionHeader,
   startSpinner,
   spinnerSuccess,
   spinnerFail,
   isInteractive,
   selectChange,
   confirmDangerous,
+  displayCommand,
 } from '../ui/index.js';
 
 interface ArchiveOptions {
@@ -31,7 +32,8 @@ export async function archiveCommand(id: string | undefined, options: ArchiveOpt
   const superspecPath = join(process.cwd(), 'superspec');
 
   if (!existsSync(superspecPath)) {
-    console.log(PALETTE.error('SuperSpec not initialized. Run: superspec init'));
+    console.log(`  ${ICONS.error} ${PALETTE.error('SuperSpec not initialized.')}`);
+    console.log(`  ${PALETTE.dim('Run:')} ${PALETTE.accent('superspec init')}`);
     process.exit(1);
   }
 
@@ -55,7 +57,7 @@ export async function archiveCommand(id: string | undefined, options: ArchiveOpt
     }
 
     if (changes.length === 0) {
-      console.log(PALETTE.warning('No active changes found.'));
+      console.log(`  ${ICONS.warning} ${PALETTE.warning('No active changes found.')}`);
       return;
     }
 
@@ -65,7 +67,7 @@ export async function archiveCommand(id: string | undefined, options: ArchiveOpt
   const changePath = join(superspecPath, 'changes', id);
 
   if (!existsSync(changePath)) {
-    console.log(PALETTE.error(`Change not found: ${id}`));
+    console.log(`  ${ICONS.error} ${PALETTE.error(`Change not found: ${id}`)}`);
     process.exit(1);
   }
 
@@ -77,13 +79,10 @@ export async function archiveCommand(id: string | undefined, options: ArchiveOpt
 
   if (!checks.valid) {
     spinnerFail(checkSpinner, 'Prerequisites not met');
-    console.log();
-    console.log(sectionDivider());
-    console.log();
-    console.log(`  ${PALETTE.bold(PALETTE.white('❌ Issues Found'))}`);
+    console.log(sectionHeader('Issues Found', '❌'));
     console.log();
     for (const issue of checks.issues) {
-      console.log(`  ${PALETTE.error(SYMBOLS.error)} ${issue}`);
+      console.log(`  ${ICONS.error} ${PALETTE.muted(issue)}`);
     }
     console.log();
     process.exit(1);
@@ -92,10 +91,7 @@ export async function archiveCommand(id: string | undefined, options: ArchiveOpt
   spinnerSuccess(checkSpinner, 'All prerequisites met');
 
   // Show what will happen
-  console.log();
-  console.log(sectionDivider());
-  console.log();
-  console.log(`  ${PALETTE.bold(PALETTE.white('📦 Archive Actions'))}`);
+  console.log(sectionHeader('Archive Actions', '📦'));
   console.log();
 
   const actions: string[] = [];
@@ -105,20 +101,21 @@ export async function archiveCommand(id: string | undefined, options: ArchiveOpt
   actions.push(`Move ${id} to archive/`);
 
   for (let i = 0; i < actions.length; i++) {
-    console.log(`  ${PALETTE.primary(`${i + 1}.`)} ${actions[i]}`);
+    console.log(`  ${PALETTE.accent(`${i + 1}.`)} ${actions[i]}`);
   }
   console.log();
 
   // Confirm
   if (!options.yes) {
-    console.log(PALETTE.warning('This action will modify your main specifications.'));
+    console.log(`  ${ICONS.warning} ${PALETTE.warning('This action will modify your main specifications.')}`);
+    console.log();
     const confirmed = await confirmDangerous({
       message: 'Proceed with archive?',
     });
 
     if (!confirmed) {
       console.log();
-      console.log(PALETTE.midGray('Archive cancelled.'));
+      console.log(`  ${PALETTE.dim('Archive cancelled.')}`);
       return;
     }
   }
@@ -135,21 +132,19 @@ export async function archiveCommand(id: string | undefined, options: ArchiveOpt
     await moveToArchive(superspecPath, changePath, id);
 
     console.log();
-    console.log(sectionDivider());
+    console.log(`  ${PALETTE.subtle('─'.repeat(50))}`);
     console.log();
-    console.log(`  ${PALETTE.success(SYMBOLS.success)} ${PALETTE.bold(PALETTE.success('Archive complete!'))}`);
+    console.log(`  ${ICONS.success} ${PALETTE.bold(PALETTE.success('Archive complete!'))}`);
+
+    console.log(sectionHeader('Next Steps', '🚀'));
     console.log();
-    console.log(sectionDivider());
-    console.log();
-    console.log(`  ${PALETTE.bold(PALETTE.white('🚀 Next Steps'))}`);
-    console.log();
-    console.log(`  ${PALETTE.primary('1.')} Run validation: ${PALETTE.white('superspec validate --all')}`);
-    console.log(`  ${PALETTE.primary('2.')} Verify main specs are updated correctly`);
+    displayCommand('superspec validate --all', 'Run validation');
+    console.log(`  ${PALETTE.dim('Verify main specs are updated correctly')}`);
     console.log();
   } catch (err) {
     console.log();
-    console.log(`  ${PALETTE.error(SYMBOLS.error)} ${PALETTE.bold(PALETTE.error('Archive failed'))}`);
-    console.log(`  ${PALETTE.error(err instanceof Error ? err.message : String(err))}`);
+    console.log(`  ${ICONS.error} ${PALETTE.bold(PALETTE.error('Archive failed'))}`);
+    console.log(`  ${PALETTE.muted(err instanceof Error ? err.message : String(err))}`);
     process.exit(1);
   }
 }

@@ -3,14 +3,14 @@ import { join } from 'path';
 import matter from 'gray-matter';
 import {
   PALETTE,
-  SYMBOLS,
+  ICONS,
   commandHeader,
-  sectionDivider,
+  sectionHeader,
   createProgressBar,
-  statusBadge,
-  statusIndicator,
   isInteractive,
   selectPrompt,
+  displayStats,
+  displayCommand,
 } from '../ui/index.js';
 
 interface ListOptions {
@@ -44,8 +44,8 @@ export async function listCommand(options: ListOptions): Promise<void> {
   const superspecPath = join(process.cwd(), 'superspec');
 
   if (!existsSync(superspecPath)) {
-    console.log(PALETTE.error(`${SYMBOLS.error} SuperSpec not initialized.`));
-    console.log(PALETTE.midGray('  Run: superspec init'));
+    console.log(`  ${ICONS.error} ${PALETTE.error('SuperSpec not initialized.')}`);
+    console.log(`  ${PALETTE.dim('Run:')} ${PALETTE.accent('superspec init')}`);
     process.exit(1);
   }
 
@@ -97,34 +97,35 @@ async function listChanges(superspecPath: string, options: ListOptions): Promise
 
   if (changes.length === 0) {
     console.log();
-    console.log(PALETTE.midGray('  No changes found.'));
+    console.log(`  ${PALETTE.dim('No changes found.')}`);
     console.log();
-    console.log(`  ${PALETTE.midGray('Get started:')} ${PALETTE.white('/superspec:brainstorm')}`);
+    displayCommand('/superspec:brainstorm', 'Start a new change');
     console.log();
     return;
   }
 
   // Stats summary
   console.log();
-  console.log(`  ${PALETTE.bold(PALETTE.white('📊 Summary'))}  ${PALETTE.primary(String(active.length))} active  ${PALETTE.midGray('·')}  ${PALETTE.midGray(String(archived.length))} archived`);
+  displayStats([
+    { label: 'Active', value: active.length, icon: PALETTE.success('●') },
+    { label: 'Archived', value: archived.length, icon: PALETTE.dim('○') },
+  ]);
 
+  // Active Changes
   if (active.length > 0) {
+    console.log(sectionHeader('Active Changes', '●'));
     console.log();
-    console.log(sectionDivider());
-    console.log();
-    console.log(`  ${PALETTE.bold(PALETTE.success('● Active Changes'))}`);
-    console.log();
+
     for (const change of active) {
       printChangeCard(change);
     }
   }
 
+  // Archived Changes
   if (archived.length > 0 && options.archived) {
+    console.log(sectionHeader('Archived Changes', '○'));
     console.log();
-    console.log(sectionDivider());
-    console.log();
-    console.log(`  ${PALETTE.bold(PALETTE.midGray('○ Archived Changes'))}`);
-    console.log();
+
     for (const change of archived) {
       printChangeCard(change);
     }
@@ -132,7 +133,7 @@ async function listChanges(superspecPath: string, options: ListOptions): Promise
 
   // Interactive mode - offer to select
   if (isInteractive(options) && active.length > 0) {
-    console.log(sectionDivider());
+    console.log(`  ${PALETTE.subtle('─'.repeat(55))}`);
     console.log();
 
     const viewChange = await selectPrompt({
@@ -142,7 +143,7 @@ async function listChanges(superspecPath: string, options: ListOptions): Promise
           name: `${PALETTE.primary('›')} ${c.id}${c.title ? ` - ${c.title}` : ''}`,
           value: c.id,
         })),
-        { name: PALETTE.midGray('  (Cancel)'), value: '' },
+        { name: PALETTE.dim('  (Cancel)'), value: '' },
       ],
     });
 
@@ -197,36 +198,41 @@ function getChangeInfo(id: string, path: string, status: 'active' | 'archived'):
 }
 
 function printChangeCard(change: ChangeInfo): void {
-  // Status icon and docs indicators
-  const docs = [
-    change.hasProposal ? PALETTE.success('P') : PALETTE.darkGray('P'),
-    change.hasDesign ? PALETTE.success('D') : PALETTE.darkGray('D'),
-    change.hasSpecs ? PALETTE.success('S') : PALETTE.darkGray('S'),
-    change.hasPlan ? PALETTE.success('L') : PALETTE.darkGray('L'),
-  ].join('');
-
-  // Title line
-  const title = change.title
-    ? PALETTE.lightGray(change.title.length > 40 ? change.title.slice(0, 37) + '...' : change.title)
-    : '';
+  // Status icon
   const statusIcon = change.status === 'archived'
-    ? PALETTE.midGray('○')
+    ? PALETTE.dim('○')
     : PALETTE.success('●');
 
-  // Box style card
-  console.log(`  ${PALETTE.primary('┌─')} ${statusIcon} ${PALETTE.bold(PALETTE.white(change.id))}`);
+  // Document indicators
+  const docs = [
+    change.hasProposal ? PALETTE.success('P') : PALETTE.dark('P'),
+    change.hasDesign ? PALETTE.success('D') : PALETTE.dark('D'),
+    change.hasSpecs ? PALETTE.success('S') : PALETTE.dark('S'),
+    change.hasPlan ? PALETTE.success('L') : PALETTE.dark('L'),
+  ].join('');
+
+  // Title
+  const title = change.title
+    ? PALETTE.dim(change.title.length > 40 ? change.title.slice(0, 37) + '…' : change.title)
+    : '';
+
+  // Card layout
+  console.log(`  ${PALETTE.subtle('┌─')} ${statusIcon} ${PALETTE.bold(PALETTE.white(change.id))}`);
+
   if (title) {
-    console.log(`  ${PALETTE.primary('│')}  ${title}`);
+    console.log(`  ${PALETTE.subtle('│')}   ${title}`);
   }
-  console.log(`  ${PALETTE.primary('│')}  ${PALETTE.midGray('Docs:')} [${docs}]  ${PALETTE.darkGray('P=Proposal D=Design S=Specs L=Plan')}`);
+
+  console.log(`  ${PALETTE.subtle('│')}   ${PALETTE.dim('Docs:')} [${docs}]  ${PALETTE.dark('P=Proposal D=Design S=Specs L=Plan')}`);
 
   // Progress bar if has tasks
   if (change.taskProgress && change.taskProgress.total > 0) {
     const { completed, total } = change.taskProgress;
-    console.log(`  ${PALETTE.primary('│')}  ${PALETTE.midGray('Progress:')} ${createProgressBar(completed, total, 15)}`);
+    const bar = createProgressBar(completed, total, { width: 15 });
+    console.log(`  ${PALETTE.subtle('│')}   ${PALETTE.dim('Progress:')} ${bar}`);
   }
 
-  console.log(`  ${PALETTE.primary('└─')}`);
+  console.log(`  ${PALETTE.subtle('└─')}`);
   console.log();
 }
 
@@ -256,9 +262,9 @@ async function listSpecs(superspecPath: string, options: ListOptions): Promise<v
 
   if (specs.length === 0) {
     console.log();
-    console.log(PALETTE.midGray('  No specs found.'));
+    console.log(`  ${PALETTE.dim('No specs found.')}`);
     console.log();
-    console.log(`  ${PALETTE.midGray('Tip:')} Archive a change to create main specs.`);
+    console.log(`  ${PALETTE.accent('💡')} ${PALETTE.dim('Archive a change to create main specs.')}`);
     console.log();
     return;
   }
@@ -268,28 +274,34 @@ async function listSpecs(superspecPath: string, options: ListOptions): Promise<v
   const totalScenarios = specs.reduce((sum, s) => sum + s.scenarioCount, 0);
 
   console.log();
-  console.log(`  ${PALETTE.bold(PALETTE.white('📊 Summary'))}  ${PALETTE.primary(String(specs.length))} specs  ${PALETTE.midGray('·')}  ${PALETTE.cyan(String(totalReqs))} requirements  ${PALETTE.midGray('·')}  ${PALETTE.cyan(String(totalScenarios))} scenarios`);
-  console.log();
-  console.log(sectionDivider());
+  displayStats([
+    { label: 'Specs', value: specs.length, icon: ICONS.spec },
+    { label: 'Requirements', value: totalReqs, icon: PALETTE.primary('◆') },
+    { label: 'Scenarios', value: totalScenarios, icon: PALETTE.accent('◆') },
+  ]);
+
+  console.log(sectionHeader('Specifications'));
   console.log();
 
   for (const spec of specs) {
     const purpose = spec.purpose
-      ? PALETTE.midGray(spec.purpose.length > 50 ? spec.purpose.slice(0, 47) + '...' : spec.purpose)
+      ? PALETTE.dim(spec.purpose.length > 50 ? spec.purpose.slice(0, 47) + '…' : spec.purpose)
       : '';
 
-    console.log(`  ${PALETTE.primary('┌─')} ${PALETTE.bold(PALETTE.cyan(spec.name))}`);
+    console.log(`  ${PALETTE.subtle('┌─')} ${ICONS.spec} ${PALETTE.bold(PALETTE.primaryBright(spec.name))}`);
+
     if (purpose) {
-      console.log(`  ${PALETTE.primary('│')}  ${purpose}`);
+      console.log(`  ${PALETTE.subtle('│')}   ${purpose}`);
     }
-    console.log(`  ${PALETTE.primary('│')}  ${PALETTE.success(String(spec.requirementCount))} requirements  ${PALETTE.midGray('·')}  ${PALETTE.info(String(spec.scenarioCount))} scenarios`);
-    console.log(`  ${PALETTE.primary('└─')}`);
+
+    console.log(`  ${PALETTE.subtle('│')}   ${PALETTE.success(String(spec.requirementCount))} requirements  ${PALETTE.dim('·')}  ${PALETTE.info(String(spec.scenarioCount))} scenarios`);
+    console.log(`  ${PALETTE.subtle('└─')}`);
     console.log();
   }
 
   // Interactive selection
   if (isInteractive(options) && specs.length > 0) {
-    console.log(sectionDivider());
+    console.log(`  ${PALETTE.subtle('─'.repeat(55))}`);
     console.log();
 
     const viewSpec = await selectPrompt({
@@ -299,7 +311,7 @@ async function listSpecs(superspecPath: string, options: ListOptions): Promise<v
           name: `${PALETTE.primary('›')} ${s.name} (${s.requirementCount} req)`,
           value: s.name,
         })),
-        { name: PALETTE.midGray('  (Cancel)'), value: '' },
+        { name: PALETTE.dim('  (Cancel)'), value: '' },
       ],
     });
 

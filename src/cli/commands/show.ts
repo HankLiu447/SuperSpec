@@ -3,16 +3,16 @@ import { join } from 'path';
 import matter from 'gray-matter';
 import {
   PALETTE,
-  SYMBOLS,
+  ICONS,
   commandHeader,
-  sectionDivider,
+  sectionHeader,
   createProgressBar,
   isInteractive,
-  selectPrompt,
   selectItemType,
   selectChange,
   selectSpec,
-  numberedItem,
+  displayCommand,
+  formatPath,
 } from '../ui/index.js';
 
 interface ShowOptions {
@@ -52,15 +52,16 @@ export async function showCommand(item: string | undefined, options: ShowOptions
   const superspecPath = join(process.cwd(), 'superspec');
 
   if (!existsSync(superspecPath)) {
-    console.log(PALETTE.error(`${SYMBOLS.error} SuperSpec not initialized. Run: superspec init`));
+    console.log(`  ${ICONS.error} ${PALETTE.error('SuperSpec not initialized.')}`);
+    console.log(`  ${PALETTE.dim('Run:')} ${PALETTE.accent('superspec init')}`);
     process.exit(1);
   }
 
   // If no item specified, show interactive selection
   if (!item) {
     if (!isInteractive()) {
-      console.log(PALETTE.error(`${SYMBOLS.error} Please specify an item to show, or run in interactive mode.`));
-      console.log(PALETTE.midGray('  Usage: superspec show <change-id|spec-name>'));
+      console.log(`  ${ICONS.error} ${PALETTE.error('Please specify an item to show, or run in interactive mode.')}`);
+      console.log(`  ${PALETTE.dim('Usage:')} superspec show <change-id|spec-name>`);
       process.exit(1);
     }
 
@@ -88,8 +89,8 @@ export async function showCommand(item: string | undefined, options: ShowOptions
   } else if (existsSync(specPath)) {
     await showSpec(item, specPath, options);
   } else {
-    console.log(PALETTE.error(`${SYMBOLS.error} Not found: ${item}`));
-    console.log(PALETTE.midGray('  Use "superspec list" to see available items.'));
+    console.log(`  ${ICONS.error} ${PALETTE.error(`Not found: ${item}`)}`);
+    console.log(`  ${PALETTE.dim('Use')} ${PALETTE.accent('superspec list')} ${PALETTE.dim('to see available items.')}`);
     process.exit(1);
   }
 }
@@ -155,19 +156,16 @@ async function showChange(
   // Header
   console.log(commandHeader(`show ${id}`, details.title || 'Change details'));
 
-  // Status badge
+  // Status and Path
   console.log();
   const statusIcon = status === 'archived'
-    ? `${PALETTE.midGray('○')} ${PALETTE.midGray('archived')}`
+    ? `${PALETTE.dim('○')} ${PALETTE.dim('archived')}`
     : `${PALETTE.success('●')} ${PALETTE.success('active')}`;
-  console.log(`  ${PALETTE.bold(PALETTE.white('Status'))}   ${statusIcon}`);
-  console.log(`  ${PALETTE.bold(PALETTE.white('Path'))}     ${PALETTE.midGray(path)}`);
+  console.log(`  ${PALETTE.dim('Status')}   ${statusIcon}`);
+  console.log(`  ${PALETTE.dim('Path')}     ${formatPath(path)}`);
 
-  // Documents section with nice boxes
-  console.log();
-  console.log(sectionDivider());
-  console.log();
-  console.log(`  ${PALETTE.bold(PALETTE.white('📄 Documents'))}`);
+  // Documents Section
+  console.log(sectionHeader('Documents', '📄'));
   console.log();
 
   printDocBox('Proposal', details.hasProposal, details.proposalTitle, 'P');
@@ -178,45 +176,40 @@ async function showChange(
     ? `${details.taskProgress.completed}/${details.taskProgress.total} complete`
     : undefined, 'T');
 
-  // Task progress bar
+  // Task Progress
   if (details.taskProgress && details.taskProgress.total > 0) {
+    console.log(sectionHeader('Progress', '📊'));
     console.log();
-    console.log(sectionDivider());
-    console.log();
-    console.log(`  ${PALETTE.bold(PALETTE.white('📊 Progress'))}`);
-    console.log();
-    console.log(`  ${createProgressBar(details.taskProgress.completed, details.taskProgress.total, 35)}`);
+    const bar = createProgressBar(details.taskProgress.completed, details.taskProgress.total, { width: 30, showCount: true });
+    console.log(`  ${bar}`);
   }
 
-  // Specs list
+  // Specs List
   if (details.specs && details.specs.length > 0) {
+    console.log(sectionHeader('Specifications', '📋'));
     console.log();
-    console.log(sectionDivider());
-    console.log();
-    console.log(`  ${PALETTE.bold(PALETTE.white('📋 Specifications'))}`);
-    console.log();
+
     for (const spec of details.specs) {
-      console.log(`  ${PALETTE.primary('›')} ${PALETTE.cyan(spec.name)} ${PALETTE.midGray(`(${spec.requirementCount} req, ${spec.scenarioCount} scenarios)`)}`);
+      console.log(`  ${PALETTE.subtle('┌─')} ${ICONS.spec} ${PALETTE.bold(PALETTE.primaryBright(spec.name))}`);
+      console.log(`  ${PALETTE.subtle('│')}   ${PALETTE.dim(`${spec.requirementCount} requirements · ${spec.scenarioCount} scenarios`)}`);
+      console.log(`  ${PALETTE.subtle('└─')}`);
     }
   }
 
-  // Next actions
+  // Next Actions
   if (status === 'active') {
-    console.log();
-    console.log(sectionDivider());
-    console.log();
-    console.log(`  ${PALETTE.bold(PALETTE.white('🎯 Next Actions'))}`);
+    console.log(sectionHeader('Next Actions', '🎯'));
     console.log();
 
     if (!details.hasProposal || !details.hasDesign || !details.hasSpecs) {
-      console.log(`  ${PALETTE.primary('›')} Continue design: ${PALETTE.white('/superspec:brainstorm')}`);
+      displayCommand('/superspec:brainstorm', 'Continue design');
     } else if (!details.hasPlan) {
-      console.log(`  ${PALETTE.primary('›')} Create plan: ${PALETTE.white('/superspec:plan')}`);
+      displayCommand('/superspec:plan', 'Create implementation plan');
     } else if (details.taskProgress && details.taskProgress.completed < details.taskProgress.total) {
-      console.log(`  ${PALETTE.primary('›')} Execute plan: ${PALETTE.white('/superspec:execute')}`);
+      displayCommand('/superspec:execute', 'Execute plan');
     } else {
-      console.log(`  ${PALETTE.primary('›')} Verify: ${PALETTE.white(`superspec verify ${id}`)}`);
-      console.log(`  ${PALETTE.primary('›')} Archive: ${PALETTE.white(`superspec archive ${id}`)}`);
+      displayCommand(`superspec verify ${id}`, 'Verify implementation');
+      displayCommand(`superspec archive ${id}`, 'Archive change');
     }
   }
 
@@ -224,13 +217,14 @@ async function showChange(
 }
 
 function printDocBox(label: string, exists: boolean, detail?: string, letter?: string): void {
-  const icon = exists ? PALETTE.success('✓') : PALETTE.darkGray('○');
+  const icon = exists ? ICONS.check : PALETTE.dark('○');
   const letterBadge = letter
-    ? (exists ? PALETTE.success(`[${letter}]`) : PALETTE.darkGray(`[${letter}]`))
+    ? (exists ? PALETTE.success(`[${letter}]`) : PALETTE.dark(`[${letter}]`))
     : '';
-  const detailStr = detail ? PALETTE.midGray(` - ${detail}`) : '';
+  const detailStr = detail ? PALETTE.dim(` - ${detail}`) : '';
+  const labelStyle = exists ? PALETTE.white : PALETTE.dim;
 
-  console.log(`  ${icon} ${letterBadge} ${PALETTE.white(label)}${detailStr}`);
+  console.log(`  ${icon} ${letterBadge} ${labelStyle(label)}${detailStr}`);
 }
 
 function gatherChangeDetails(id: string, path: string, status: 'active' | 'archived'): ChangeDetails {
@@ -336,34 +330,28 @@ async function showSpec(name: string, path: string, options: ShowOptions): Promi
 
   // Purpose
   if (details.purpose) {
+    console.log(sectionHeader('Purpose', '📝'));
     console.log();
-    console.log(`  ${PALETTE.bold(PALETTE.white('📝 Purpose'))}`);
-    console.log();
-    console.log(`  ${PALETTE.lightGray(details.purpose)}`);
+    console.log(`  ${PALETTE.muted(details.purpose)}`);
   }
 
-  // Stats
+  // Statistics
+  console.log(sectionHeader('Statistics', '📊'));
   console.log();
-  console.log(sectionDivider());
-  console.log();
-  console.log(`  ${PALETTE.bold(PALETTE.white('📊 Statistics'))}`);
-  console.log();
-  console.log(`  ${PALETTE.cyan(String(details.requirementCount))} requirements  ${PALETTE.midGray('·')}  ${PALETTE.info(String(details.scenarioCount))} scenarios`);
+  console.log(`  ${PALETTE.primary('◆')} ${PALETTE.primaryBright(String(details.requirementCount))} requirements  ${PALETTE.dim('·')}  ${PALETTE.accent('◆')} ${PALETTE.info(String(details.scenarioCount))} scenarios`);
 
-  // Requirements list
+  // Requirements List
+  console.log(sectionHeader('Requirements', '📋'));
   console.log();
-  console.log(sectionDivider());
-  console.log();
-  console.log(`  ${PALETTE.bold(PALETTE.white('📋 Requirements'))}`);
-  console.log();
+
   for (let i = 0; i < details.requirements.length; i++) {
-    console.log(numberedItem(i + 1, details.requirements[i]!));
+    console.log(`  ${PALETTE.accent(`${i + 1}.`)} ${details.requirements[i]}`);
   }
 
   // Path
   console.log();
-  console.log(sectionDivider());
+  console.log(`  ${PALETTE.dim('─'.repeat(50))}`);
   console.log();
-  console.log(`  ${PALETTE.midGray('Path:')} ${PALETTE.darkGray(path)}`);
+  console.log(`  ${PALETTE.dim('Path:')} ${formatPath(path)}`);
   console.log();
 }

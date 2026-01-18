@@ -359,8 +359,8 @@ function printVerifyReport(result: VerifyResult, options: VerifyOptions): void {
     ? Math.round((result.coverage.scenarios / result.coverage.scenariosTotal) * 100)
     : 0;
 
-  console.log(`  ${PALETTE.midGray('Requirements:')} ${createProgressBar(result.coverage.requirements, result.coverage.requirementsTotal, 20)} ${result.coverage.requirements}/${result.coverage.requirementsTotal} ${PALETTE.midGray(`(${reqPercent}%)`)}`);
-  console.log(`  ${PALETTE.midGray('Scenarios:   ')} ${createProgressBar(result.coverage.scenarios, result.coverage.scenariosTotal, 20)} ${result.coverage.scenarios}/${result.coverage.scenariosTotal} ${PALETTE.midGray(`(${scenarioPercent}%)`)}`);
+  console.log(`  ${PALETTE.midGray('Requirements:')} ${createProgressBar(result.coverage.requirements, result.coverage.requirementsTotal, { width: 20 })} ${result.coverage.requirements}/${result.coverage.requirementsTotal} ${PALETTE.midGray(`(${reqPercent}%)`)}`);
+  console.log(`  ${PALETTE.midGray('Scenarios:   ')} ${createProgressBar(result.coverage.scenarios, result.coverage.scenariosTotal, { width: 20 })} ${result.coverage.scenarios}/${result.coverage.scenariosTotal} ${PALETTE.midGray(`(${scenarioPercent}%)`)}`);
 
   // Requirement coverage detail
   if (options.verbose) {

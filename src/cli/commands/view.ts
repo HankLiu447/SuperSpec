@@ -3,13 +3,16 @@ import { join } from 'path';
 import matter from 'gray-matter';
 import {
   PALETTE,
-  SYMBOLS,
-  sectionDivider,
+  ICONS,
+  BOX,
+  sectionHeader,
   createProgressBar,
   startSpinner,
   spinnerSuccess,
   isInteractive,
   selectPrompt,
+  displayCommand,
+  displayStats,
 } from '../ui/index.js';
 
 interface ViewOptions {
@@ -48,8 +51,8 @@ export async function viewCommand(options: ViewOptions): Promise<void> {
   const superspecPath = join(process.cwd(), 'superspec');
 
   if (!existsSync(superspecPath)) {
-    console.log(PALETTE.error('SuperSpec not initialized.'));
-    console.log(PALETTE.midGray('Run: superspec init'));
+    console.log(`  ${ICONS.error} ${PALETTE.error('SuperSpec not initialized.')}`);
+    console.log(`  ${PALETTE.dim('Run:')} ${PALETTE.accent('superspec init')}`);
     process.exit(1);
   }
 
@@ -62,47 +65,53 @@ export async function viewCommand(options: ViewOptions): Promise<void> {
     return;
   }
 
-  // Display dashboard
+  // ═══════════════════════════════════════════════════════════════════════════
+  // DASHBOARD HEADER
+  // ═══════════════════════════════════════════════════════════════════════════
+
   console.log();
-  console.log(PALETTE.primary('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━'));
-  console.log(`${PALETTE.bold(PALETTE.primary('⬡'))} ${PALETTE.bold(PALETTE.white('SuperSpec Dashboard'))}`);
-  console.log(PALETTE.primary('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━'));
+  console.log(`  ${PALETTE.subtle(BOX.heavyTopLeft + BOX.heavyH.repeat(58) + BOX.heavyTopRight)}`);
+  console.log(`  ${PALETTE.subtle(BOX.heavyV)}  ${PALETTE.primary('⬡')} ${PALETTE.bold(PALETTE.white('SuperSpec Dashboard'))}${' '.repeat(36)}${PALETTE.subtle(BOX.heavyV)}`);
+  console.log(`  ${PALETTE.subtle(BOX.heavyBottomLeft + BOX.heavyH.repeat(58) + BOX.heavyBottomRight)}`);
 
-  // Stats overview
+  // ═══════════════════════════════════════════════════════════════════════════
+  // PROJECT STATISTICS
+  // ═══════════════════════════════════════════════════════════════════════════
+
+  console.log(sectionHeader('Project Statistics', '📊'));
   console.log();
-  console.log(`  ${PALETTE.bold(PALETTE.white('📊 Project Statistics'))}`);
+  displayStats([
+    { label: 'Main Specs', value: overview.stats.mainSpecCount },
+    { label: 'Active', value: overview.stats.activeChangeCount },
+    { label: 'Archived', value: overview.stats.archivedChangeCount },
+  ]);
+  console.log();
+  displayStats([
+    { label: 'Requirements', value: overview.stats.totalRequirements, icon: PALETTE.primary('◆') },
+    { label: 'Scenarios', value: overview.stats.totalScenarios, icon: PALETTE.accent('◆') },
+  ]);
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // ACTIVE CHANGES
+  // ═══════════════════════════════════════════════════════════════════════════
+
+  console.log(sectionHeader('Active Changes', '🔄'));
   console.log();
 
-  const statsBox = [
-    `${PALETTE.midGray('Main Specs:')}        ${PALETTE.white(String(overview.stats.mainSpecCount).padStart(3))}`,
-    `${PALETTE.midGray('Active Changes:')}    ${PALETTE.white(String(overview.stats.activeChangeCount).padStart(3))}`,
-    `${PALETTE.midGray('Archived Changes:')}  ${PALETTE.white(String(overview.stats.archivedChangeCount).padStart(3))}`,
-    '',
-    `${PALETTE.midGray('Total Requirements:')} ${PALETTE.primary(String(overview.stats.totalRequirements).padStart(3))}`,
-    `${PALETTE.midGray('Total Scenarios:')}   ${PALETTE.primary(String(overview.stats.totalScenarios).padStart(3))}`,
-  ];
-
-  for (const line of statsBox) {
-    console.log(`  ${line}`);
-  }
-
-  // Active Changes
   if (overview.activeChanges.length > 0) {
-    console.log();
-    console.log(sectionDivider());
-    console.log();
-    console.log(`  ${PALETTE.bold(PALETTE.white('🔄 Active Changes'))}`);
-    console.log();
-
     for (const change of overview.activeChanges) {
       const phaseIcon = getPhaseIcon(change.phase);
-      const title = change.title ? PALETTE.lightGray(` - ${change.title.slice(0, 35)}${change.title.length > 35 ? '...' : ''}`) : '';
-      console.log(`  ${phaseIcon} ${PALETTE.primary(change.id)}${title}`);
+      const title = change.title
+        ? PALETTE.dim(` - ${change.title.slice(0, 35)}${change.title.length > 35 ? '…' : ''}`)
+        : '';
+
+      console.log(`  ${PALETTE.subtle('┌─')} ${phaseIcon} ${PALETTE.bold(PALETTE.white(change.id))}${title}`);
 
       // Progress bar if in execute phase
       if (change.progress && change.progress.total > 0) {
         const { completed, total } = change.progress;
-        console.log(`    ${createProgressBar(completed, total, 20)} ${PALETTE.midGray(`${completed}/${total} tasks`)}`);
+        const bar = createProgressBar(completed, total, { width: 18, showCount: true });
+        console.log(`  ${PALETTE.subtle('│')}   ${bar}`);
       }
 
       // Phase indicator
@@ -110,68 +119,70 @@ export async function viewCommand(options: ViewOptions): Promise<void> {
       const currentPhaseIndex = phases.indexOf(change.phase);
       const phaseBar = phases.map((p, i) => {
         if (i < currentPhaseIndex) return PALETTE.success('●');
-        if (i === currentPhaseIndex) return PALETTE.primary('◉');
-        return PALETTE.darkGray('○');
+        if (i === currentPhaseIndex) return PALETTE.accent('●');
+        return PALETTE.dark('○');
       }).join(' ');
-      console.log(`    ${PALETTE.midGray('Phase:')} ${phaseBar}`);
+      console.log(`  ${PALETTE.subtle('│')}   ${PALETTE.dim('Phase:')} ${phaseBar}`);
+      console.log(`  ${PALETTE.subtle('└─')}`);
       console.log();
     }
   } else {
+    console.log(`  ${PALETTE.dim('No active changes.')}`);
     console.log();
-    console.log(sectionDivider());
-    console.log();
-    console.log(`  ${PALETTE.bold(PALETTE.white('🔄 Active Changes'))}`);
-    console.log();
-    console.log(`  ${PALETTE.midGray('No active changes.')}`);
-    console.log(`  ${PALETTE.midGray('Start a new change:')} ${PALETTE.white('/superspec:brainstorm')}`);
+    displayCommand('/superspec:brainstorm', 'Start a new change');
     console.log();
   }
 
-  // Main Specs
+  // ═══════════════════════════════════════════════════════════════════════════
+  // MAIN SPECIFICATIONS
+  // ═══════════════════════════════════════════════════════════════════════════
+
   if (overview.mainSpecs.length > 0) {
-    console.log();
-    console.log(sectionDivider());
-    console.log();
-    console.log(`  ${PALETTE.bold(PALETTE.white('📋 Main Specifications'))}`);
+    console.log(sectionHeader('Main Specifications', '📋'));
     console.log();
 
     // Table header
-    console.log(`  ${PALETTE.bold('Name'.padEnd(25))} ${PALETTE.bold('Requirements'.padStart(12))} ${PALETTE.bold('Scenarios'.padStart(10))}`);
-    console.log(`  ${PALETTE.darkGray('─'.repeat(25))} ${PALETTE.darkGray('─'.repeat(12))} ${PALETTE.darkGray('─'.repeat(10))}`);
+    console.log(`  ${PALETTE.bold(PALETTE.dim('Name'.padEnd(28)))} ${PALETTE.bold(PALETTE.dim('Reqs'.padStart(8)))} ${PALETTE.bold(PALETTE.dim('Scenarios'.padStart(10)))}`);
+    console.log(`  ${PALETTE.dark('─'.repeat(28))} ${PALETTE.dark('─'.repeat(8))} ${PALETTE.dark('─'.repeat(10))}`);
 
-    for (const spec of overview.mainSpecs.slice(0, 10)) {
-      const name = spec.name.length > 24 ? spec.name.slice(0, 22) + '..' : spec.name.padEnd(25);
-      console.log(`  ${PALETTE.primary(name)} ${String(spec.requirementCount).padStart(12)} ${String(spec.scenarioCount).padStart(10)}`);
+    for (const spec of overview.mainSpecs.slice(0, 8)) {
+      const name = spec.name.length > 27
+        ? spec.name.slice(0, 25) + '…'
+        : spec.name;
+      console.log(`  ${PALETTE.primaryBright(name.padEnd(28))} ${PALETTE.white(String(spec.requirementCount).padStart(8))} ${PALETTE.white(String(spec.scenarioCount).padStart(10))}`);
     }
 
-    if (overview.mainSpecs.length > 10) {
-      console.log(`  ${PALETTE.midGray(`... and ${overview.mainSpecs.length - 10} more`)}`);
+    if (overview.mainSpecs.length > 8) {
+      console.log(`  ${PALETTE.dim(`... and ${overview.mainSpecs.length - 8} more`)}`);
     }
     console.log();
   }
 
-  // Quick actions
+  // ═══════════════════════════════════════════════════════════════════════════
+  // QUICK ACTIONS
+  // ═══════════════════════════════════════════════════════════════════════════
+
+  console.log(sectionHeader('Quick Actions', '🚀'));
   console.log();
-  console.log(sectionDivider());
-  console.log();
-  console.log(`  ${PALETTE.bold(PALETTE.white('🚀 Quick Actions'))}`);
-  console.log();
-  console.log(`  ${PALETTE.primary('1.')} ${PALETTE.white('superspec list')}       ${PALETTE.darkGray('- View all changes')}`);
-  console.log(`  ${PALETTE.primary('2.')} ${PALETTE.white('superspec list -s')}    ${PALETTE.darkGray('- View all specs')}`);
-  console.log(`  ${PALETTE.primary('3.')} ${PALETTE.white('superspec validate')}   ${PALETTE.darkGray('- Validate specs')}`);
-  console.log(`  ${PALETTE.primary('4.')} ${PALETTE.white('/superspec:brainstorm')} ${PALETTE.darkGray('- Start new change')}`);
+  displayCommand('superspec list', 'View all changes');
+  displayCommand('superspec list -s', 'View all specs');
+  displayCommand('superspec validate', 'Validate specs');
+  displayCommand('/superspec:brainstorm', 'Start new change');
   console.log();
 
-  // Interactive mode - offer navigation
+  // ═══════════════════════════════════════════════════════════════════════════
+  // INTERACTIVE NAVIGATION
+  // ═══════════════════════════════════════════════════════════════════════════
+
   if (isInteractive() && (overview.activeChanges.length > 0 || overview.mainSpecs.length > 0)) {
-    console.log(sectionDivider());
+    console.log(`  ${PALETTE.subtle('─'.repeat(55))}`);
     console.log();
 
     const choices = [
-      { name: `${PALETTE.midGray('→')} View a change`, value: 'change' },
-      { name: `${PALETTE.midGray('→')} View a spec`, value: 'spec' },
-      { name: `${PALETTE.midGray('→')} Run validation`, value: 'validate' },
-      { name: PALETTE.midGray('(Exit)'), value: 'exit' },
+      { name: `${PALETTE.primary('›')} View a change`, value: 'change' },
+      { name: `${PALETTE.primary('›')} View a spec`, value: 'spec' },
+      { name: `${PALETTE.primary('›')} Run validation`, value: 'validate' },
+      { name: PALETTE.dim('  (Exit)'), value: 'exit' },
     ];
 
     const action = await selectPrompt({
@@ -187,7 +198,7 @@ export async function viewCommand(options: ViewOptions): Promise<void> {
       }));
       const selectedChange = await selectPrompt({
         message: 'Select a change:',
-        choices: [...changeChoices, { name: PALETTE.midGray('(Cancel)'), value: '' }],
+        choices: [...changeChoices, { name: PALETTE.dim('(Cancel)'), value: '' }],
       });
       if (selectedChange) {
         await showCommand(selectedChange as string, {});
@@ -200,7 +211,7 @@ export async function viewCommand(options: ViewOptions): Promise<void> {
       }));
       const selectedSpec = await selectPrompt({
         message: 'Select a spec:',
-        choices: [...specChoices, { name: PALETTE.midGray('(Cancel)'), value: '' }],
+        choices: [...specChoices, { name: PALETTE.dim('(Cancel)'), value: '' }],
       });
       if (selectedSpec) {
         await showCommand(selectedSpec as string, {});
@@ -288,7 +299,6 @@ function getChangeOverview(id: string, path: string): ChangeOverview {
   }
 
   // Determine phase
-  const hasProposal = existsSync(join(path, 'proposal.md'));
   const hasDesign = existsSync(join(path, 'design.md'));
   const hasSpecs = existsSync(join(path, 'specs'));
   const hasPlan = existsSync(join(path, 'plan.md'));
@@ -343,12 +353,12 @@ function getSpecOverview(name: string, path: string): SpecOverview {
 
 function getPhaseIcon(phase: ChangeOverview['phase']): string {
   const icons: Record<string, string> = {
-    proposal: PALETTE.darkGray('◐'),
-    design: PALETTE.darkGray('◑'),
+    proposal: PALETTE.dark('◐'),
+    design: PALETTE.dim('◑'),
     spec: PALETTE.primary('◐'),
-    plan: PALETTE.primary('◑'),
-    execute: PALETTE.warning('◉'),
+    plan: PALETTE.primaryBright('◑'),
+    execute: PALETTE.accent('◉'),
     verify: PALETTE.success('●'),
   };
-  return icons[phase] ?? PALETTE.darkGray('○');
+  return icons[phase] ?? PALETTE.dark('○');
 }

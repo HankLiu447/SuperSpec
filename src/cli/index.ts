@@ -1,6 +1,9 @@
 #!/usr/bin/env node
 
 import { Command } from 'commander';
+import { readFileSync } from 'fs';
+import { fileURLToPath } from 'url';
+import { dirname, join } from 'path';
 import { initCommand } from './commands/init.js';
 import { listCommand } from './commands/list.js';
 import { showCommand } from './commands/show.js';
@@ -11,12 +14,17 @@ import { viewCommand } from './commands/view.js';
 import { settingCommand } from './commands/setting.js';
 import { PALETTE, MINI_BANNER } from './ui/index.js';
 
+// Read version from package.json
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+const packageJson = JSON.parse(readFileSync(join(__dirname, '..', '..', 'package.json'), 'utf-8'));
+
 const program = new Command();
 
 program
   .name('superspec')
   .description('SuperSpec - Unified spec-driven development framework')
-  .version('0.1.0');
+  .version(packageJson.version);
 
 // View command (dashboard - default when no command)
 program

@@ -7,6 +7,10 @@
  * @module superspec
  */
 
+import { readFileSync } from 'fs';
+import { fileURLToPath } from 'url';
+import { dirname, join } from 'path';
+
 // Core exports
 export { validateSpec, validateSpecSet } from './core/validation/spec-validator.js';
 export type { ValidationResult, ValidationIssue } from './core/validation/spec-validator.js';
@@ -18,9 +22,12 @@ export { loadProjectConfig, getDefaultConfig, serializeConfig } from './core/con
 export type { ProjectConfig } from './core/config/project-config.js';
 
 /**
- * SuperSpec version
+ * SuperSpec version - read from package.json
  */
-export const VERSION = '0.1.0';
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+const packageJson = JSON.parse(readFileSync(join(__dirname, '..', 'package.json'), 'utf-8'));
+export const VERSION: string = packageJson.version;
 
 /**
  * Core principles (Iron Laws)
